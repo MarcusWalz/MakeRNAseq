@@ -256,7 +256,7 @@ to execute remotely. E.g. the following will reserve a node with 8 cores and 22g
 of memory and then execute `my_command`.
 
 ~~~~~~~~~~~~~~~~~~~
--alloc -c 8 -N 1 --mem 22000 srun my_command
+salloc -c 8 -N 1 --mem 22000 srun my_command
 ~~~~~~~~~~~~~~~~~~~
 
 Note this is a single "conjugate" command. `salloc` executes `srun` and `srun` executes `my_command` 
@@ -366,4 +366,6 @@ tab.
 
 ### Make Variables and String Operations
 
+### Dealing with multiple output files
 
+### Modifing rules
