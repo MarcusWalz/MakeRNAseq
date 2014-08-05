@@ -62,7 +62,7 @@ dependencies a lot of workflow programming becomes implicit.
 
 ### Terminology
 
-Make is pretty simple. 
+Make is pretty simple, it boils down to the following:
 
 <dl>
 <dt>Dependency (a.k.a Prerequisite)</dt>
@@ -95,17 +95,16 @@ in a file called `Makefile`:
 
 # this rule creates a file called Hello.
 Hello : ;
-echo Hello > Hello
+	echo Hello > Hello
 a
 # this rule creates a file called Word.
 World : ;
-echo World > World
+	echo World > World
 
 # This rule combines the files Hello and World.
 # n.b. Hello and World are dependencies for the rule below.
 HelloWorld : Hello World ;
-cat Hello World > HelloWorld
-
+	cat Hello World > HelloWorld
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The target `Hello` can now be constructed (or "maked") by executing the following command 
@@ -135,7 +134,7 @@ cat Hello World > HelloWorld
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Notice how Make does not reconstruct the target `Hello`. 
-Make is lazy and avoids redundent computions.
+Make is lazy and avoids superfluous computations.
 
 To demonstrate, let's make `HelloWorld` again.
 
@@ -169,7 +168,17 @@ Make is able to declaretively encode a bioinformatic workflow quite
 easily, simply by tracking the input and output files that a bioinformatic
 program uses or produces.
 
-### The three most important rules to bioinformatic Make files.
+Makefile syntax is very straightforward and very similar to shell scripts. Note that:
+
+* Commands need to be offset by one or more old fashioned tabs, i.e. `\t`. Spaces don't work.
+* Variables need to be surrounded by parenthesis, i.e.  `$(foo)` except for single character
+    macro variables like `$<` and `$@`.
+* Arrays are simply variables with unescaped whitespace--just like shell scripts.
+* Some variables work more like functions and can be used to manipulate other variables. E.g.
+    `$(addsuffix .txt, hello)` is equivalent to `hello.txt`. The section on variables has more
+    info on this.
+
+### The n most important rules to bioinformatic Make files.
 
 Make is powerful and flexible. From experience, it seems that make
 work's best when you follow the commandments:
@@ -252,16 +261,25 @@ one Makefile for high throughput analysis and second Makefile for
 the analysis that can take place on a personal computer.
 
 Otherwise, for UWM's Avi cluster, we prepend `salloc <scheduler PARAMS>` to the command
-to execute remotely. E.g. the following will reserve a node with 8 cores and 22gb
-of memory and then execute `my_command`.
+to execute remotely. E.g. the following will request and wait for a node with 8 cores
+and nearly 22,000 megabytes of memory and then execute `my_command`.
 
 ~~~~~~~~~~~~~~~~~~~
 salloc -c 8 -N 1 --mem 22000 srun my_command
 ~~~~~~~~~~~~~~~~~~~
 
 Note this is a single "conjugate" command. `salloc` executes `srun` and `srun` executes `my_command` 
-on the resources `salloc` requisitioned. 
+on the resources `salloc` requisitioned. Once `my_command` has terminated, resources are freed.
 
+Make will run sequentially and not in parallel unless the `-j` parameter is supplied with the maximum
+number of rules to execute concurrently. E.g., the following constructs a target executing a maximum of
+48 concurrent rules:
+
+~~~~~~~~~~~~~~~~~~~~~
+make -j 48 my_target
+~~~~~~~~~~~~~~~~~~~~~
+
+ 
 ### Organizing the experiment #########
 
 Another potential caveat of the Makefile approach is that
@@ -292,7 +310,7 @@ E.g.:
 1. Rule for Downloading a Sample form the sequencer
 2. Rule for generating a FastQC report
 3. Rule for cleaning out adapters
-4. Rule for generatinng a FastQC report for cleaned adapters.
+4. Rule for generating a FastQC report for cleaned adapters.
 5. Rule to align reads to genome.
 
 But rules 2 and 4 are identical. It's best to move more general
@@ -305,15 +323,15 @@ TODO Replace working Makefile
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Convert Serial (Sam) aligments to Binary (Bam) alignments
-     *.sam : *.bam ;
+*.sam : *.bam ;
      samtools view -b $< > $@ 
 
 # Sort a bam file by locus
-     *.sorted.bam : %.bam ;
+*.sorted.bam : %.bam ;
      samtools sort $< $@ 
 
 # Index a bam file
-     *.sorted.bam.bai : *.sorted.bam
+*.sorted.bam.bai : *.sorted.bam
      samtools faidx $<
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
