@@ -200,63 +200,63 @@ The first command:
 As long as a command "blocks" i.e. does not terminate 
 until it is finished executing it can be used within the workflow. 
 This means we can't simply submit "batch scripts" to the scheduler,
-     instead we submit interactive jobs. Interactive jobs work identically
-     to connecting to a remote server via ssh. However, there are some
-     syntaxual caveats to be aware of.
+instead we submit interactive jobs. Interactive jobs work identically
+to connecting to a remote server via ssh. However, there are some
+syntaxual caveats to be aware of.
 
-     Namely piped commands need to be enclosed in single quotes in order
-     for the entire sequence of computations to take place remotely.
+Namely piped commands need to be enclosed in single quotes in order
+for the entire sequence of computations to take place remotely.
 
-     Consider the following example: 
+Consider the following example: 
 
-     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     $ ssh -t myserver date > remote_time # example 1
-     $ ssh -t myserver 'date > my_time'   # example 2
-     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+$ ssh -t myserver date > remote_time # example 1
+$ ssh -t myserver 'date > my_time'   # example 2
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-     The first command:
+The first command:
 
-     1. Connects to `myserver` 
-     2. On myserver executes the command `date` 
-     3. Sends the output of `date` back to your computer.
-     4. Your computer sends the output to a file named `remote_time`.
+1. Connects to `myserver` 
+2. On myserver executes the command `date` 
+3. Sends the output of `date` back to your computer.
+4. Your computer sends the output to a file named `remote_time`.
 
-     I.e. the output is sent directly back at us.
+I.e. the output is sent directly back at us.
 
-     While the second command:
+While the second command:
 
-     1. Connects to `myserver`
-     2. Executes the command `date`
-     3. Saves the time as `my_time` on `myserver`'s filesystem.
+1. Connects to `myserver`
+2. Executes the command `date`
+3. Saves the time as `my_time` on `myserver`'s filesystem.
 
-     I.e. the output of the command `date` never leaves the server.
+I.e. the output of the command `date` never leaves the server.
 
-     But on an HPC cluster with a shared filesystem both my_time
-     and time will appear in your current directory. The first 
-     command is significantly less efficient since the data `date` produced gets
-     rerouted back to the local computer and then sent over the file system. In
-     the second command, `date` bypasses the local computer and gets sent directly to
-     data. In high throughput situations, the first example is disastrous and has 
-     resulted in the workflow crashing. It's best to avoid piping altogether.
+But on an HPC cluster with a shared filesystem both my_time
+and time will appear in your current directory. The first 
+command is significantly less efficient since the data `date` produced gets
+rerouted back to the local computer and then sent over the file system. In
+the second command, `date` bypasses the local computer and gets sent directly to
+data. In high throughput situations, the first example is disastrous and has 
+resulted in the workflow crashing. It's best to avoid piping altogether.
 
-     Using raw ssh gives us the ability to have certain steps of a workflow
-     execute on very particular computers (e.g. your very laptop or
-		     the labs web server). This is useful for less computational intense 
-     work that requires software that is difficult to get working on a 
-     HPC cluster; e.g., graphing and gene set analysis software. Note that,
-     you need to mount the remote file system on your local computer or
-     you must move input files need to be moved to the remote server
-     explicitly and output files need to be moved back. This is easier
-     said than done. It's probably simplest to keep two make files:
-     one Makefile for high throughput analysis and second Makefile for
-     the analysis that can take place on a personal computer.
+Using raw ssh gives us the ability to have certain steps of a workflow
+execute on very particular computers (e.g. your very laptop or
+the labs web server). This is useful for less computational intense 
+work that requires software that is difficult to get working on a 
+HPC cluster; e.g., graphing and gene set analysis software. Note that,
+you need to mount the remote file system on your local computer or
+you must move input files need to be moved to the remote server
+explicitly and output files need to be moved back. This is easier
+said than done. It's probably simplest to keep two make files:
+one Makefile for high throughput analysis and second Makefile for
+the analysis that can take place on a personal computer.
 
-     Otherwise, for UWM's Avi cluster, we prepend `salloc <scheduler PARAMS>` to the command
+Otherwise, for UWM's Avi cluster, we prepend `salloc <scheduler PARAMS>` to the command
 to execute remotely. E.g. the following will reserve a node with 8 cores and 22gb
 of memory and then execute `my_command`.
 
 ~~~~~~~~~~~~~~~~~~~
-alloc -c 8 -N 1 --mem 22000 srun my_command
+-alloc -c 8 -N 1 --mem 22000 srun my_command
 ~~~~~~~~~~~~~~~~~~~
 
 Note this is a single "conjugate" command. `salloc` executes `srun` and `srun` executes `my_command` 
@@ -264,46 +264,46 @@ on the resources `salloc` requisitioned.
 
 ### Organizing the experiment #########
 
-     Another potential caveat of the Makefile approach is that
-     it requires you to organize your experiments data files in a
-     wae that is--well--very organized. See the example Makefile
-     which goes in depth for a generic RNAseq design that analyses
-     multiple experiments in parallel.
+Another potential caveat of the Makefile approach is that
+it requires you to organize your experiments data files in a
+wae that is--well--very organized. See the example Makefile
+which goes in depth for a generic RNAseq design that analyses
+multiple experiments in parallel.
 
-     In short, files need to be predictable places. As you move down
-     the directory tree you should move from more "general files" to
-     more specific files.
+In short, files need to be predictable places. As you move down
+the directory tree you should move from more "general files" to
+more specific files.
 
-     As a rule of thumb, if you're Makefile has a lot of experiment
-     specific rules or a lot of funky string manipulation going on, chances
-     are moving around a few files will make a simpler Makefile.
+As a rule of thumb, if you're Makefile has a lot of experiment
+specific rules or a lot of funky string manipulation going on, chances
+are moving around a few files will make a simpler Makefile.
 
 ### Writing Rules #####################
 
-     Makefiles should be easy to read and well documented. The great
-     thing about using Makefile is that an entire workflow can be
-     encoded into a single file.
+Makefiles should be easy to read and well documented. The great
+thing about using Makefile is that an entire workflow can be
+encoded into a single file.
 
-     The order of rules doesn't matter, but they should appear in the
-     same order they would execute.
+The order of rules doesn't matter, but they should appear in the
+same order they would execute.
 
-     E.g.:
+E.g.:
 
-     1. Rule for Downloading a Sample form the sequencer
-     2. Rule for generating a FastQC report
-     3. Rule for cleaning out adapters
-     4. Rule for generatinng a FastQC report for cleaned adapters.
-     5. Rule to align reads to genome.
+1. Rule for Downloading a Sample form the sequencer
+2. Rule for generating a FastQC report
+3. Rule for cleaning out adapters
+4. Rule for generatinng a FastQC report for cleaned adapters.
+5. Rule to align reads to genome.
 
-     But rules 2 and 4 are identical. It's best to move more general
-     rules to either the start or end of the Makefile. This means
-     certain bioinformatic operations become implicit based on the 
-     dependency requested. Here are some examples of general rules on
-     alignment files: 
+But rules 2 and 4 are identical. It's best to move more general
+rules to either the start or end of the Makefile. This means
+certain bioinformatic operations become implicit based on the 
+dependency requested. Here are some examples of general rules on
+alignment files: 
 
-     TODO Replace working Makefile
+TODO Replace working Makefile
 
-     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Convert Serial (Sam) aligments to Binary (Bam) alignments
      *.sam : *.bam ;
      samtools view -b $< > $@ 
@@ -315,53 +315,53 @@ on the resources `salloc` requisitioned.
 # Index a bam file
      *.sorted.bam.bai : *.sorted.bam
      samtools faidx $<
-     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-     The percent sign is a wild card that works similar to `*` wildcard in shell scripts.
-     `$<` is a macro for the first dependency. `$@` is a macro
-     for the current target. 
+The percent sign is a wild card that works similar to `*` wildcard in shell scripts.
+`$<` is a macro for the first dependency. `$@` is a macro
+for the current target. 
 
-     Suppose we have a file called `test.sam` then running:
+Suppose we have a file called `test.sam` then running:
 
-     ~~~~~~~~~~~~~~~~~~~~~~~~
-     $ make test.sorted.bam.bai
-     ~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
+$ make test.sorted.bam.bai
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-     Will execute the following commands:
+Will execute the following commands:
 
-     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     samtools view -b test.sam > test.bam
-     samtools sort test.bam test.sorted.bam
-     samtools faidx test.sorted.bam
-     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+samtools view -b test.sam > test.bam
+samtools sort test.bam test.sorted.bam
+samtools faidx test.sorted.bam
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-     This order of execution gets determined by searching for a
-     dependency's dependency until Make finds a rule where all
-     dependencies are satisfied. Make matches "wildcard" rules
-     as a last resort, that is make defaults to rules for targets
-     without wildcards whenever possible. 
+This order of execution gets determined by searching for a
+dependency's dependency until Make finds a rule where all
+dependencies are satisfied. Make matches "wildcard" rules
+as a last resort, that is make defaults to rules for targets
+without wildcards whenever possible. 
 
 
-     Here is an example of a more complicated rule:
+Here is an example of a more complicated rule:
 
-     ~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
 #Align to genome via tophat via the script scripts/tophat.sh
-     samples/%/tophat/accepted_hits.bam : \
-	     $(genome_idx) \
-	     $(genome_gtf) \
-	     scripts/tophat.sh \
-	     samples/%/cleaned_reads/r1.fq.gz \
-	     samples/%/cleaned_reads/r2.fq.gz ;
-salloc -c 8 -N 1 --mem 21000 -J tophat srun \
+samples/%/tophat/accepted_hits.bam : \
+	$(genome_idx) \
+	$(genome_gtf) \
+	scripts/tophat.sh \
+	samples/%/cleaned_reads/r1.fq.gz \
+	samples/%/cleaned_reads/r2.fq.gz ;
+	salloc -c 8 -N 1 --mem 21000 -J tophat srun \
 	       scripts/tophat.sh $(@D)
 
-	       ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 
-	       Since there are a lot of dependencies, we keep the code readable by 
-	       spanning the list of over multiple lines and escaping the new line
-	       character with a `\`. The scheduler-related portion of the command
-	       has it's own line. Finally, the actual command is offset by an additional 
-	       tab. 
+Since there are a lot of dependencies, we keep the code readable by 
+spanning the list of over multiple lines and escaping the new line
+character with a `\`. The scheduler-related portion of the command
+has it's own line. Finally, the actual command is offset by an additional 
+tab. 
 
 
 ### Make Variables and String Operations
