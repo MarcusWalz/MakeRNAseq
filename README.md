@@ -1,11 +1,11 @@
-Make-based RNA-seq Analysis Workflow
+Maake-based RNA-seq Analysis Workflow
 ====================================================
 
 Prerequisites
 --------------------------------------
 
 This guide assumes the reader has some basic unix knowledge.
-At a  minimum the user should have some understanding of
+At a  minimum the reader should have some understanding of
 the unix command line, unix file system, and secure shell.
 
 Using this Guide
@@ -22,8 +22,8 @@ git clone git@github.com:MarcusWalz/MakeRNAseq.git
 Some of the features of this repository include:
 
 * `README.mkd` this very file
-* `Makefile` the RNAseq Makefile
-* `examples/` a directory containing several example makefiles
+* `expirement/Makefile` the RNAseq Makefile itself.
+* `examples/` a directory containing several example makefiles to help you get familiar with Make's features. 
 
 Intro
 ---------------------------------------
@@ -71,6 +71,9 @@ However Make is designed for software compilation, not
 bioinformatic pipelines. At times, Make using make will be a
 bit awkward. 
 
+We have succesfully used this pipeline to analyize 500 gigabytes of
+RNAseq data.
+
 Make Basics
 --------------------------------------
 
@@ -102,25 +105,25 @@ must be saved as `makefile` or `Makefile`.</dd>
 <dd>The directory where the Makefile lives. The `make` command can
 only be called from this directory.</dd>
 </dl>
-
+a
 ### A simple make file
 
 > You can try running everything below yourself, assuming you already
 > cloned the repository. Simply `cd` to the directory `examples/simple`.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+a
 # this rule creates a file called Hello.
 Hello : ;
 	echo Hello > Hello
-a
-# this rule creates a file called Word.
+aa
+# this rule creates a file called World.
 World : ;
 	echo World > World
 
 # This rule combines the files Hello and World.
 # n.b. Hello and World are dependencies for the rule below.
-HelloWorlad : Hello World ;
+HelloWorld : Hello World ;
 	cat Hello World > HelloWorld
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -296,7 +299,6 @@ number of rules to execute concurrently. E.g., the following constructs a target
 make -j 48 my_target
 ~~~~~~~~~~~~~~~~~~~~~
 
- 
 ### Organizing the experiment #########
 
 Another potential caveat of the Makefile approach is that
@@ -312,7 +314,7 @@ more specific files.
 As a rule of thumb, if you're Makefile has a lot of experiment
 specific rules or a lot of funky string manipulation going on, chances
 are moving around a few files will make a simpler Makefile.
-
+a
 ### Writing Rules #####################
 
 Makefiles should be easy to read and well documented. The great
@@ -342,7 +344,7 @@ TODO Replace working Makefile
 # Convert Serial (Sam) aligments to Binary (Bam) alignments
 *.sam : *.bam ;
      samtools view -b $< > $@ 
-
+a
 # Sort a bam file by locus
 *.sorted.bam : %.bam ;
      samtools sort $< $@ 
@@ -395,13 +397,39 @@ samples/%/tophat/accepted_hits.bam : \
 
 Since there are a lot of dependencies, we keep the code readable by 
 spanning the list of over multiple lines and escaping the new line
-character with a `\`. The scheduler-related portion of the command
+character with a `\\`. The scheduler-related portion of the command
 has it's own line. Finally, the actual command is offset by an additional 
 tab. 
 
 
-### Make Variables and String Operations
+### Make Variables and Built-in-functions
+
+Variables in Make are very important, especially for Bioinformatic workflows.
+Variables work very similar to shell scripting. Like scripting, "Arrays" are
+simply variables with unescaped whitespace.
+
+Variables can be assigned in two ways:
+
+1. Using `=`, in which case the variable gets evaluated each time it appears in a rule
+2. Or using `:=`, which evaluates on assignment.
+
+Consider the following examples:
+
+~~~~~~~~~~~~~~~~~~~~~
+bar = Hello
+foo = $(bar)
+bar = $(ugh)
+ugh = Huh?
+~~~~~~~~~~~~~~~~~~~~~
+
+Here `$(foo)` is equivalent to `Huh?`. If we change the assignment operators to `:=` `foo` would
+be equivalent to `Hello`.
+
+
+Another confusing thing about Make is that some built-in functions are called 
+by variables. E.g.: `$(join Hello, World)` is function and produces
+a value equivelent to `HelloWorld`. If this troubling, you can differentiate
+variables and functions using curly braces. E.g.: `${join Hello, World}`.
 
 ### Dealing with multiple output files
-
 ### Modifing rules
