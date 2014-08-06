@@ -428,8 +428,8 @@ be equivalent to `Hello`.
 
 Another confusing thing about Make is that some built-in functions are called 
 by variables. E.g.: `$(join Hello, World)` is function and produces
-a value equivelent to `HelloWorld`. If this troubling, you can differentiate
-variables and functions using curly braces. E.g.: `${join Hello, World}`.
+a value equivelent to `HelloWorld`. If this troubling functions can be differentiated
+from variables using curly brackets; e.g., `${join Hello, World}`.
 
 ### Dealing with multiple output files
 ### Modifing rules
