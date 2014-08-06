@@ -1,0 +1,35 @@
+Macros
+============================
+
+This Makefile creates any file that ends in `.txt` and 
+will print each macro to a text file.
+
+Running the command: 
+
+~~~~~~~~~~~~~~~~~~~~
+make test.txt
+~~~~~~~~~~~~~~~~~~~~
+
+Will output a file named `test.txt`.  
+
+You can view this file in terminal using the command `less`. 
+
+E.g.
+
+~~~~~~~~~~~~~~~~~~~~~~
+less text.txt
+~~~~~~~~~~~~~~~~~~~~~~
+
+You can exit `less` by pressing the `q` key.
+
+Questions
+------------------------
+
+
+1. Why is there a special macro for `$`?
+
+2. Why is it better to use macros than calling an explicit file?
+
+3. Is it possible to write a wildcard rule (i.e. using `%`) without using any explicit wildcards?
+
+4. When is it useful to get the parent directory of target or dependency?

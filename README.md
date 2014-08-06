@@ -353,8 +353,9 @@ TODO Replace working Makefile
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The percent sign is a wild card that works similar to `*` wildcard in shell scripts.
-`$<` is a macro for the first dependency. `$@` is a macro
-for the current target. 
+`$<` is a macro for the first dependency. `$@` is a macro for the current target. 
+
+You can expirement with macros in `examples/macros`.
 
 Suppose we have a file called `test.sam` then running:
 
