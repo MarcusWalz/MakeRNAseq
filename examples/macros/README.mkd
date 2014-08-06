@@ -35,3 +35,5 @@ Questions
 3. Is it possible to write a wildcard rule (i.e. using `%`) without using any explicit wildcards?
 
 4. When is it useful to get the parent directory of target or dependency?
+
+5. How is the dependency array different than the dependency set?

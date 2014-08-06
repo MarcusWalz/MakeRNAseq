@@ -9,8 +9,8 @@ dependency2 : ; touch dependency2
 	@echo 1st dependency: $$\< $<  >> $@
 	@echo Dependencies younger than target: $$\? $? >> $@
 	@echo Suffix match: $$\* $* >> $@
-	@echo Dependency Set: $$\^ $^  \(no duplicate dependencies\) >> $@
-	@echo Dependency Array: $$\+ $+ \(same order as in rule, duplicates printed\) >> $@
+	@echo Dependency Set: $$\^ $^  >> $@
+	@echo Dependency Array: $$\+ $+ >> $@
 	@echo Dollar Sign: $$\$$ $$ >> $@
 	@echo Gets the parent directory: $$\(\<D\) $(<D) >> $@
 	@echo "Check out the file "$@""
