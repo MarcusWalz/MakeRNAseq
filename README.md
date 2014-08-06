@@ -5,8 +5,25 @@ Prerequisites
 --------------------------------------
 
 This guide assumes the reader has some basic unix knowledge.
-At a  minimum the user should have a conceptual understanding of
+At a  minimum the user should have some understanding of
 the unix command line, unix file system, and secure shell.
+
+Using this Guide
+--------------------------------------
+
+This guide, example files, and an example implementation are
+included in a git repository. You can get a local copy by running
+the following command:
+
+~~~~~~~~~~~~~~~~~
+git clone git@github.com:MarcusWalz/MakeRNAseq.git
+~~~~~~~~~~~~~~~~~
+
+Some of the features of this repository include:
+
+* `README.mkd` this very file
+* `Makefile` the RNAseq Makefile
+* `examples/` a directory containing several example makefiles
 
 Intro
 ---------------------------------------
