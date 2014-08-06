@@ -105,10 +105,10 @@ only be called from this directory.</dd>
 
 ### A simple make file
 
-Make a new directory and save the following code
-in a file called `Makefile`:
+> You can try running everything below yourself, assuming you already
+> cloned the repository. Simply `cd` to the directory `examples/simple`.
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # this rule creates a file called Hello.
 Hello : ;
@@ -120,7 +120,7 @@ World : ;
 
 # This rule combines the files Hello and World.
 # n.b. Hello and World are dependencies for the rule below.
-HelloWorld : Hello World ;
+HelloWorlad : Hello World ;
 	cat Hello World > HelloWorld
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
