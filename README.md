@@ -397,7 +397,7 @@ samples/%/tophat/accepted_hits.bam : \
 
 Since there are a lot of dependencies, we keep the code readable by 
 spanning the list of over multiple lines and escaping the new line
-character with a `\\`. The scheduler-related portion of the command
+character with a `\ `. The scheduler-related portion of the command
 has it's own line. Finally, the actual command is offset by an additional 
 tab. 
 
@@ -422,14 +422,19 @@ bar = $(ugh)
 ugh = Huh?
 ~~~~~~~~~~~~~~~~~~~~~
 
-Here `$(foo)` is equivalent to `Huh?`. If we change the assignment operators to `:=` `foo` would
-be equivalent to `Hello`.
+Here `$(foo)` is equivalent to `Huh?`. Changing the assignment operators to `:=` makes 
+`foo` equivalent to `Hello`. 
 
+Generally, `:=` is going to be the correct operator to use, especially when stateful 
+functions are being used.
 
 Another confusing thing about Make is that some built-in functions are called 
 by variables. E.g.: `$(join Hello, World)` is function and produces
-a value equivelent to `HelloWorld`. If this troubling functions can be differentiated
-from variables using curly brackets; e.g., `${join Hello, World}`.
+a value equivelent to `HelloWorld`. If this is troubling, functions can be
+differentiated from variables using curly brackets; e.g., `${join Hello, World}`.
+
+Functions generally map over each element of an array. E.g. `${addsuffix .txt, file1 file2}`
+produces the array: `file1.txt file2.txt`. 
 
 ### Dealing with multiple output files
 ### Modifing rules
