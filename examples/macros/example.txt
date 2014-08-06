@@ -1,0 +1,8 @@
+target name: $@ example.txt
+1st dependency: $< this_is_a_directory/i_live_in_a_subdir
+Dependencies younger than target: $? this_is_a_directory/i_live_in_a_subdir dependency1 dependency2
+Suffix match: $* example
+Dependency Set: $^ this_is_a_directory/i_live_in_a_subdir dependency1 dependency2 (no duplicate dependencies)
+Dependency Array: $+ this_is_a_directory/i_live_in_a_subdir dependency1 dependency2 dependency1 (same order as in rule, duplicates printed)
+Dollar Sign: $$ $
+Gets the parent directory: $(<D) this_is_a_directory
