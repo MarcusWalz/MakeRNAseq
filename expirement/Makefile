@@ -1,20 +1,52 @@
-#Prevent Make from Deleting Intermediate Files
-.SECONDARY:
+# This workflow translates raw read data in the form of fastq files 
+# to differential expression data against a reference genome.
 
+
+# Edits to make:
+# 
+# Use symbolic link and scaffold hacks to make workflow more flexible.
+#
+# 1. Change directory structure. 
+#
+# Introduce Genome Directory
+# E.g. 
+# genome/ZV8/source.sh 
+# genome/ZV8/genome.fa 
+# genome/ZV8/transcripts.gtf 
+# genome/ZV8/bowtie_genome_idx/
+# genome/ZV8/bowtie_transcripts_idx/
+#
+# Introduce Expirement Directory
+# expirement/<expirement_name>/
+# 	samples/<conditon_name>-R<replicate_number>/
+#   genome/ -> ../../ZV8 (should be a symlink)
+#   diff/
+#   scripts/
+#   
+#   This way sample sheets can be generated from the directory structure using a generic rule.
+#
+#   All outputs for the expirement stay inside this directory.
+
+
+# Prevent Make from Deleting Intermediate Files. If disk space is an
+# issue, deleting the seconday flag will let Make will delete intermediate
+# files as soon as possible. 
+.SECONDARY:
+	
 # Usage: 
 # 0. install tophat bowtie2 cufflinks fastqc cutadapt samtools 
 # Everything BUT cutadapt is preinstalled in the bin directory for Avi.
 export PATH := bin:$(PATH)
 
-# Installing cutadapt is less easy. For now you can use my personal version.
-
+# Installing cutadapt on Avi, for now you can use my own personal version. 
+# N.b. this is likely to break.
 export PATH := /share7/SPH/ptone_a/mewalz/software/python/bin/:$(PATH)
 
-# The following rule checks to make sure all required software is available:
-# make test_software 
+# The following rule checks to make sure all required software is available.
+# To run:
+# $ make test_software 
 test_software : ;
 	which bowtie2 tophat cufflinks fastqc cutadapt samtools
-
 
 # 1. Each Sample needs to be stuck in the samples directory so that the 
 # directory samples/<sample_name>/raw_reads contains the following files:
