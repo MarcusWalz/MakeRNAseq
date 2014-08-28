@@ -42,6 +42,21 @@ export PATH := bin:$(PATH)
 # N.b. this is likely to break.
 export PATH := /share7/SPH/ptone_a/mewalz/software/python/bin/:$(PATH)
 
+# Download a file
+%: %.source ; 
+	wget -O $@ `cat $<`
+
+# Ungzip a file
+% : %.gz ; 
+	gzcat $< > $@
+
+# Download and ungzip file
+genome/%/genome.fq: genome/%/genome.fq.gz.source ; 
+	wget -O - o /dev/null `cat $<` | gunzip > $@
+
+genome/%/bowtie2_idx.output : genome/%/genome.fq ;
+	salloc --mem 8000 srun bowtie2-build $< $(@D)/bowtie2 | tee $@
+
 # The following rule checks to make sure all required software is available.
 # To run:
 # $ make test_software 
