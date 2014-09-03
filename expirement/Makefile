@@ -50,10 +50,15 @@ export PATH := /share7/SPH/ptone_a/mewalz/software/python/bin/:$(PATH)
 % : %.gz ; 
 	gzcat $< > $@
 
-# Download and ungzip file
+# Download and ungzip genome file
 genome/%/genome.fq: genome/%/genome.fq.gz.source ; 
 	wget -O - o /dev/null `cat $<` | gunzip > $@
 
+# Download and ungzip transcipt gtf file
+genome/%/genome.fq: genome/%/transcript.gtf.gz.source ; 
+	wget -O - o /dev/null `cat $<` | gunzip > $@
+
+# Index the genome. This takes several hours.
 genome/%/bowtie2_idx.output : genome/%/genome.fq ;
 	salloc --mem 8000 srun bowtie2-build $< $(@D)/bowtie2 | tee $@
 
