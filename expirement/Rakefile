@@ -44,10 +44,9 @@ class Genome
 		@bowtie_pre = "#{@pre}/genome_idx/p"    #Bowtie2 Genome Pre
 		@yml        = YAML.load_file( @yml_file)
 	end
-
 end
 
-# Create Genome Directory
+# Genome Rules
 genome_ymls=FileList.new("genomes/*.yml")
 
 genome_ymls.each do |genome_yml| 
@@ -55,17 +54,9 @@ genome_ymls.each do |genome_yml|
 	genome_name    = File.basename genome_yml, ".yml" 
 	g = Genome.new genome_name
 
-#	genome_pre     = "genomes/#{genome_name}"        #Prefix file, starts with genomes
-#	genome_dir     = "#{genome_pre}/"                #Genome Directory
-#	genome_fa      = "#{genome_pre}/genome.fa"       #Genome fasta location
-#	genome_gtf     = "#{genome_pre}/transcripts.gtf" #Transcript gtf location
-#	genome_idx_dir = "#{genome_pre}/genome_idx/"     #Bowtie2 Index for Genome
-#	genome_idx_log = "#{genome_pre}/genome_idx/log"  #Bowtie2 Index Log
-#	genome_prefix  = "#{genome_pre}/genome_idx/p"    #Bowtie2 Genome Pre
-
 	# Create genome directory
 	file g.dir do |t|
-		Dir.mkdir( t.name ) unless Dir.exists?( t.name )
+		Dir.mkdir( g.dir ) unless Dir.exists?( t.name )
 	end
 
 	# Download fasta from yml param "genome_fasta"

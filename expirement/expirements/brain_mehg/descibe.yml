@@ -1,0 +1,24 @@
+sequencing_type: "IlluminaTruSeq" # Type of Sequencing Used
+read_length: 101                  # Read Length
+reference_genome: "ZV9"           # Reference Genome
+sample_directory: "/brain_data "  # Directory where samples live
+
+conditions:
+  - name: control
+    replicates:
+        [ { id: 1, index: "ACCTGA", r1: "run483.C1B_ACTTGA_L001_R1.fastq.gz", r2: "run483.C1B_ACTTGA_L001_R2.fastq.gz" }
+        , { id: 2, index: "TAGCTT", r1: "run483.C2B_TAGCTT_L001_R1.fastq.gz", r2: "run483.C2B_TAGCTT_L001_R2.fastq.gz" }
+        , { id: 4, index: "GGCTAC", r1: "run483.C4B_GGCTAC_L001_R1.fastq.gz", r2: "run483.C4B_GGCTAC_L001_R2.fastq.gz" }
+        , { id: 5, index: "CTTGTA", r1: "run483.C5B_CTTGTA_L001_R1.fastq.gz", r2: "run483.C5B_CTTGTA_L001_R2.fastq.gz" }
+        , { id: 6, index: "AGTCAA", r1: "run483.C6B_AGTCAA_L001_R1.fastq.gz", r2: "run483.C6B_AGTCAA_L001_R2.fastq.gz" }
+        , { id: 8, index: "AGTTCC", r1: "run483.C8B_AGTTCC_L001_R1.fastq.gz", r2: "run483.C8B_AGTTCC_L001_R2.fastq.gz" }
+        ]
+  - name: treatment
+    replicates:
+        [ { id: 1, index: "GTTTCG", r1: "run483.T1B_GTTTCG_L001_R1.fastq.gz", r2: "run483.T1B_GTTTCG_L001_R2.fastq.gz" }
+        , { id: 2, index: "GTGGCC", r1: "run483.T2B_GTGGCC_L001_R1.fastq.gz", r2: "run483.T2B_GTGGCC_L001_R2.fastq.gz" }
+        , { id: 4, index: "GTGAAA", r1: "run483.T4B_GTGAAA_L001_R1.fastq.gz", r2: "run483.T4B_GTGAAA_L001_R2.fastq.gz" }
+        , { id: 5, index: "GTCCGC", r1: "run483.T5B_GTCCGC_L001_R1.fastq.gz", r2: "run483.T5B_GTCCGC_L001_R2.fastq.gz" }
+        , { id: 7, index: "CCGTCC", r1: "run483.T7B_CCGTCC_L001_R1.fastq.gz", r2: "run483.T7B_CCGTCC_L001_R2.fastq.gz" }
+        , { id: 8, index: "ATGTCA", r1: "run483.T8B_ATGTCA_L001_R1.fastq.gz", r2: "run483.T8B_ATGTCA_L001_R2.fastq.gz" }
+        ]
