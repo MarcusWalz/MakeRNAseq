@@ -97,15 +97,85 @@ genome_ymls.each do |genome_yml|
 
 end
 
-# Loop Example
-file 1 do 
-	sh "echo 1 > 1"
+expirement_dirs=FileList.new("expirements/*")
+
+expirement_dirs.each do |exp_dir| 
+
+	exp_name = File.basename exp_dir
+
+	# Load Expirement YAML
+	exp_yml_file = "#{exp_dir}/exp_described.yml"
+
+	# Make Sure Descriptor File Exists
+	exp_desc = YAML.load_file exp_yml_file
+
+	task "build_#{exp_name}_skeleton" => exp_yml_file do |t|
+		sample_dir = "#{exp_dir}/samples"
+		Dir.mkdir ( sample_dir ) unless Dir.exists?( sample_dir )
+
+		# Condition Directory
+		exp_desc['conditions'].each do |c| 
+			cond_dir = "#{sample_dir}/#{c['name']}"
+			Dir.mkdir ( cond_dir ) unless Dir.exists? ( cond_dir )
+
+			# Relicate Directory
+			c['replicates'].each do |rep| 
+				rep_dir = "#{cond_dir}/#{rep['id']}"
+				Dir.mkdir ( rep_dir ) unless Dir.exists? ( rep_dir )
+
+				# Link Data Files
+				# TODO actually link files
+			
+				File.write "#{rep_dir}/r1.fq.gz", ""
+				File.write("#{rep_dir}/r2.fq.gz","") if rep.key?("r2")
+
+			end
+
+		end
+
+	end
+
+	task "#{exp_dir}/sample_sheet" => exp_yml_file do t 
+		File.open( t.name ) |file| do
+			exp_desc['conditions'].each do |c| 
+				c['replicates'].each do |rep| 
+
+
+		end
+	end
+
+	
+
 end
 
-(2..100).each do |n|
-	file n => n - 1 do |t|
-			sh "cp #{t.source} #{t.name}"
-			sh "echo #{t.name} >> #{t.name}"
+class Expirement
+
+	def initialize (exp_described)
+		
+
+		@conditions 
 	end
+ 
+	# Expirements have many genomes
+	class Condition
+		def initialize (args)
+
+		end
+		
+		# Conditions have many replicates
+		class Replicate
+			def initialize (args)
+
+			end
+
+		end
+
+	end
+end
+
+	# Init using expirement_described.yml
+	
+
+	
 
 end

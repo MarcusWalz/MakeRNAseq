@@ -1,5 +1,5 @@
 sequencing_type: "IlluminaTruSeq" # Type of Sequencing Used
-read_length: 101                  # Read Length
+read_length: "2x101"              # Read Length
 reference_genome: "ZV9"           # Reference Genome
 sample_directory: "/brain_data "  # Directory where samples live
 
