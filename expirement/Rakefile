@@ -1,3 +1,7 @@
+# TODO pull "exp_described.yml" to constant variable 
+#
+
+#
 # For loading yaml parameter files
 require 'yaml'
 
@@ -12,8 +16,10 @@ def rSh(name, command, slurm_hash)
 	myCommand = "salloc -J #{name} #{salloc_commands} \
 srun \"#{command}\""
 
+	# Echo Command
 	puts myCommand
-	# sh myCommand
+	# Run Command
+	sh   myCommand
 end
 
 
@@ -134,7 +140,8 @@ expirement_dirs.each do |exp_dir|
 		end
 
 	end
-
+	
+	desc "Generate cufflink sample sheet from exp_described file" 
 	task "#{exp_dir}/sample_sheet" => exp_yml_file do t 
 		File.open( t.name ) |file| do
 			exp_desc['conditions'].each do |c| 
@@ -142,12 +149,22 @@ expirement_dirs.each do |exp_dir|
 
 
 		end
-	end
 
-	
+	end
 
 end
 
+
+# Sequencer/Sequencing Related Information is dynamically stored in modules.
+
+# Or we can use a factory 
+
+module IlluminaTruSeq
+
+
+end
+
+# Expirement Class encodes the expirement with helper funcitons.
 class Expirement
 
 	def initialize (exp_described)
@@ -156,7 +173,7 @@ class Expirement
 		@conditions 
 	end
  
-	# Expirements have many genomes
+	# Expirements have many conditions
 	class Condition
 		def initialize (args)
 
@@ -168,14 +185,20 @@ class Expirement
 
 			end
 
+			# TODO Returns the filepaths of the initial read files as an array
+			def raw_read_files
+
+			end
+
+			# TODO Returns the filepaths of the cleaned read files as an array
+			def cleaned_read_files
+
+			end
+
+			# TODO Return a hash with the adapter sequences.
+			def adapter_sequence
+
+			end
 		end
-
 	end
-end
-
-	# Init using expirement_described.yml
-	
-
-	
-
 end
