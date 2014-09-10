@@ -1,0 +1,45 @@
+# Define Rake Rule in Instance/Class Method
+
+class ClassBasedTask
+	include Rake::DSL # For instance level methods
+	extend Rake::DSL  # For class level methods
+
+	@@class_var = "Hello From the class"
+
+	def initialize(name)
+		@name = name
+	end
+
+	task self.name do
+		puts @@class_var
+	end	
+
+	def rule_test
+		task @name do
+			puts @name
+		end
+	end
+end
+
+# Now we can override rules. Class method based rules should probably be 
+# reserved for top level factory classes.
+class Test < ClassBasedTask
+
+	@@class_var = "Silly"
+
+	def rule_test
+		task @name do
+			puts @name
+			puts "works"
+		end
+	end
+	
+end
+
+ClassBasedTask.new("obj").rule_test
+ClassBasedTask.new("obj2").rule_test
+Test.new("inherit").rule_test
+
+namespace "crazy" do
+	ClassBasedTask.new("hehe").rule_test
+end
