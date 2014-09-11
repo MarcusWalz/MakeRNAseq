@@ -14,7 +14,7 @@ def rSh(name, command, slurm_hash)
 	end
 
 	myCommand = "salloc -J #{name} #{salloc_commands} \
-srun \"#{command}\""
+srun #{command}"
 
 	# Echo Command
 	puts myCommand
@@ -30,6 +30,8 @@ end
 #Genome class
 
 class Genome 
+	include Rake::DSL
+
 	attr_reader :name, :yml_file, :pre, :dir, :fa, :gtf, :idx_dir, :idx_log, :bowtie_pre, :yml
 	def initialize(name)
 		# Checks to make sure genome exists
@@ -49,60 +51,118 @@ class Genome
 		@idx_log    = "#{@pre}/genome_idx/log"  #Bowtie2 Index Log
 		@bowtie_pre = "#{@pre}/genome_idx/p"    #Bowtie2 Genome Pre
 		@yml        = YAML.load_file( @yml_file)
+
+		@master_task= "genome_#{name}"
+
+		rules
+	end
+
+	def rules
+		desc "Create genome directory"
+		directory dir
+
+		desc "Download Genome #{@name} Fasta"
+		file fa => [yml_file, dir]  do |t|
+			genome_fasta_url = yml["genome_fasta"]
+
+			unzip = File.extname(genome_fasta_url) == ".gz" ? "| gunzip -c" : "" 
+
+			sh "wget -O - #{genome_fasta_url} #{unzip} > #{t.name}"
+		end
+
+		desc "Download Genome #{@name} GTF"
+		file gtf => [yml_file, dir] do |t|
+
+			genome_gtf_url = yml["transcript_gtf"]
+
+			#splice additional command to zip if it's zipped 
+			unzip = File.extname(genome_gtf_url) == ".gz" ? "| gunzip -c" : "" 
+			sh "wget -O - #{genome_gtf_url} #{unzip} > #{t.name}"
+		end
+
+		desc "Create Genome Idx Dir"
+		directory idx_dir
+
+		desc "Index the genome using Bowtie 2"
+		file idx_log => [fa, idx_dir] do |t| 
+
+			rSh "bowtie2-build", "bowtie2-build #{fa} #{idx_dir}p > #{idx_log}", :mem=>"8000m"
+
+		end
+
+		task "genome_#{name}" => [idx_log, gtf]
 	end
 end
 
-# Genome Rules
-genome_ymls=FileList.new("genomes/*.yml")
+Genome.new("ZV9")
 
-genome_ymls.each do |genome_yml| 
+class Expirement
+	include Rake::DSL
+	attr_reader :sample_dir, :dir, :name
 
-	genome_name    = File.basename genome_yml, ".yml" 
-	g = Genome.new genome_name
+	def initialize(expirement_name)
 
-	# Create genome directory
-	file g.dir do |t|
-		Dir.mkdir( g.dir ) unless Dir.exists?( t.name )
+		@name = expirement_name
+		@dir = "expirements/#{@name}"
+		@sample_dir = "#{@dir}/samples"
+		@yml = YAML.load_file( "#{@dir}/exp_described.yml" )
+
+		directory @sample_dir
+
+		@conditions = @yml['conditions'].map do |c|
+			Condition.new(self, c)
+		end
+
 	end
-
-	# Download fasta from yml param "genome_fasta"
-	file g.fa => [g.yml_file,g.dir] do |t|
-
-		genome_fasta_url = g.yml["genome_fasta"]
-
-		#splice additional command to zip if it's zipped 
-		unzip = File.extname(genome_fasta_url) == ".gz" ? "| gunzip -c" : "" 
-
-		sh "wget -O - #{genome_fasta_url} #{unzip} > #{t.name}"
-	end
-
-	# Download transcripts from yml param "transcript_gtf"
-	file g.gtf => [g.yml,g.dir] do |t|
-		genome_gtf_url = g.yml["transcript_gtf"]
-
-		#splice additional command to zip if it's zipped 
-		unzip = File.extname(genome_gtf_url) == ".gz" ? "| gunzip -c" : "" 
-		sh "wget -O - #{genome_gtf_url} #{unzip} > #{t.name}"
-	end
-
-	# Index the genome via bowtie2
-	file g.idx_log => g.fa do |t|
-
-		# Create the parent directory if does not already exist
-		parent_dir = File.expand_path "..", t.name
-		puts parent_dir
-
-		Dir.mkdir( parent_dir ) unless Dir.exists?( parent_dir)
-		idx_prefix = "#{parent_dir}p"
-
-		rSh "bowtie2-build", "bowtie2-build #{t.source} #{idx_prefix} > #{t.name}", :mem=>8000
-	end
-
-	# Do everything genome related
-	task "build_genome_#{g.name}" => [g.idx_log, g.gtf, g.fa] 
 
 end
 
+class Condition
+	include Rake::DSL
+	attr_reader :dir, :replicates, :name
+	def initialize(expirement,condition_yml)
+		puts expirement.dir
+		@expirement = expirement
+		@name = condition_yml['name']
+		@dir = "#{@expirement.sample_dir}/#{@name}"
+
+		# Create Rule for condtion_dir
+		directory @dir
+
+		@replicates = condition_yml['replicates'].map do |r|
+			Sample.new(@expirement,self,r)
+		end
+
+	end
+
+end
+
+class Sample
+	include Rake::DSL
+
+	def initialize(expirement, condition, desc_hash)
+		@expirement = expirement
+		@condition = condition
+		@id        = desc_hash['id']
+		@r1_samples = desc_hash['r1'] 
+		@r2_samples = desc_hash['r2'] if desc_hash.key? 'r2'
+		@dir        = "#{@condition.dir}/#{@id}"
+
+		directory @dir
+
+		puts to_s
+
+	end
+
+	def to_s 
+		"#{@expirement.name}_#{@condition.name}_#{@id}"
+	end
+
+end
+
+Expirement.new("brain_mehg")
+
+=begin
 expirement_dirs=FileList.new("expirements/*")
 
 expirement_dirs.each do |exp_dir| 
@@ -202,3 +262,4 @@ class Expirement
 		end
 	end
 end
+=end
