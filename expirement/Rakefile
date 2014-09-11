@@ -104,8 +104,10 @@ class Expirement
 
 		@name = expirement_name
 		@dir = "expirements/#{@name}"
+		@yml_file = "#{@dir}/exp_described.yml"
 		@sample_dir = "#{@dir}/samples"
-		@yml = YAML.load_file( "#{@dir}/exp_described.yml" )
+		@samplesheet = "#{@dir}/samplesheet"
+		@yml = YAML.load_file @yml_file
 
 		directory @sample_dir
 
@@ -113,6 +115,21 @@ class Expirement
 			Condition.new(self, c)
 		end
 
+		sample_sheet_rule
+
+	end
+
+	def sample_sheet_rule
+		desc "Generate Expirement Sample Sheet"
+		file @samplesheet => @yml_file do 
+			File.open(@sample_sheet, 'w') { |file| 
+				@conditions.each do |c|
+					c.replicates.each do |r| 
+						file.write "#{r.alignment}\t#{c.name}\n"
+					end
+				end
+			}
+		end
 	end
 
 end
@@ -139,6 +156,7 @@ end
 
 class Sample
 	include Rake::DSL
+	attr_reader :dir, :alignment
 
 	def initialize(expirement, condition, desc_hash)
 		@expirement = expirement
@@ -147,6 +165,7 @@ class Sample
 		@r1_samples = desc_hash['r1'] 
 		@r2_samples = desc_hash['r2'] if desc_hash.key? 'r2'
 		@dir        = "#{@condition.dir}/#{@id}"
+		@alignment  = "#{@dir}/accepted_hits.bam"
 
 		directory @dir
 
