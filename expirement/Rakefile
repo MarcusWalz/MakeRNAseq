@@ -96,6 +96,50 @@ end
 
 Genome.new("ZV9")
 
+
+# Download samples from FTP server
+class FTPDownloader	< HardLink
+
+	include Rake::DSL
+	require 'net/ftp'
+	require 'uri'
+	
+
+	def initialize (root_dir, hs)
+		
+		@root_dir = root_dir
+		@username = hs['username'] ? if hs.key_exists? "username"
+		@password = hs['password'] ? if hs.key_exists? "password"
+	end
+
+	def hostname
+		URI.parse(@root_dir).host
+	end
+
+	def get_file_rule (filename, output_file)
+
+		rule output_file do
+			Net::FTP.open(hostname, user = @username, password = @password) do |ftp|
+				ftp.getbinaryfile("#{@rootdir}/#{@filename}", output_file)
+			end
+		end
+	end
+
+end
+
+class HardLink
+
+	def initialize (root_dir) 
+		@root_dir = root_dir
+	end
+
+	def get_file_rule (filename, output_file)
+		File::link("#{root_dir}/#{filename}", output_file}
+
+	end
+
+end
+
 class Expirement
 	include Rake::DSL
 	attr_reader :sample_dir, :dir, :name
@@ -122,14 +166,16 @@ class Expirement
 	def sample_sheet_rule
 		desc "Generate Expirement Sample Sheet"
 		file @samplesheet => @yml_file do 
-			File.open(@sample_sheet, 'w') { |file| 
-				@conditions.each do |c|
-					c.replicates.each do |r| 
-						file.write "#{r.alignment}\t#{c.name}\n"
-					end
+			File.open(@samplesheet, 'w') { |file| 
+				samples.each do |s|
+					file.write "#{s.alignment_file}\t#{s.condition.name}\n"
 				end
 			}
 		end
+	end
+
+	def samples 
+		@conditions.flat_map { |c| c.samples }
 	end
 
 end
@@ -138,10 +184,8 @@ class Condition
 	include Rake::DSL
 	attr_reader :dir, :replicates, :name
 	def initialize(expirement,condition_yml)
-		puts expirement.dir
 		@expirement = expirement
 		@name = condition_yml['name']
-		@dir = "#{@expirement.sample_dir}/#{@name}"
 
 		# Create Rule for condtion_dir
 		directory @dir
@@ -152,11 +196,21 @@ class Condition
 
 	end
 
+	def dir
+		"#{@expirement.sample_dir}/#{@name}"
+	end
+
+
+
+	def samples
+		@replicates
+	end
+
 end
 
 class Sample
 	include Rake::DSL
-	attr_reader :dir, :alignment
+	attr_reader :id, :condition
 
 	def initialize(expirement, condition, desc_hash)
 		@expirement = expirement
@@ -164,13 +218,31 @@ class Sample
 		@id        = desc_hash['id']
 		@r1_samples = desc_hash['r1'] 
 		@r2_samples = desc_hash['r2'] if desc_hash.key? 'r2'
-		@dir        = "#{@condition.dir}/#{@id}"
-		@alignment  = "#{@dir}/accepted_hits.bam"
 
+		# Create Rule for sample dir
 		directory @dir
+	end
 
-		puts to_s
+	def dir
+		"#{@condition.dir}/#{@id}"
+	end
 
+	def alignment_file
+		"#{@dir}/accepted_hits.bam"
+	end
+
+	def paired?
+		@r2_samples.nil?
+	end
+
+	def download_rule
+			
+
+	end
+
+	def input_files
+		return ["r1.fq.gz", "r2.fq.gz"] if paired?
+		["r1.fq.gz"]
 	end
 
 	def to_s 
@@ -180,105 +252,3 @@ class Sample
 end
 
 Expirement.new("brain_mehg")
-
-=begin
-expirement_dirs=FileList.new("expirements/*")
-
-expirement_dirs.each do |exp_dir| 
-
-	exp_name = File.basename exp_dir
-
-	# Load Expirement YAML
-	exp_yml_file = "#{exp_dir}/exp_described.yml"
-
-	# Make Sure Descriptor File Exists
-	exp_desc = YAML.load_file exp_yml_file
-
-	task "build_#{exp_name}_skeleton" => exp_yml_file do |t|
-		sample_dir = "#{exp_dir}/samples"
-		Dir.mkdir ( sample_dir ) unless Dir.exists?( sample_dir )
-
-		# Condition Directory
-		exp_desc['conditions'].each do |c| 
-			cond_dir = "#{sample_dir}/#{c['name']}"
-			Dir.mkdir ( cond_dir ) unless Dir.exists? ( cond_dir )
-
-			# Relicate Directory
-			c['replicates'].each do |rep| 
-				rep_dir = "#{cond_dir}/#{rep['id']}"
-				Dir.mkdir ( rep_dir ) unless Dir.exists? ( rep_dir )
-
-				# Link Data Files
-				# TODO actually link files
-			
-				File.write "#{rep_dir}/r1.fq.gz", ""
-				File.write("#{rep_dir}/r2.fq.gz","") if rep.key?("r2")
-
-			end
-
-		end
-
-	end
-	
-	desc "Generate cufflink sample sheet from exp_described file" 
-	task "#{exp_dir}/sample_sheet" => exp_yml_file do t 
-		File.open( t.name ) |file| do
-			exp_desc['conditions'].each do |c| 
-				c['replicates'].each do |rep| 
-
-
-		end
-
-	end
-
-end
-
-
-# Sequencer/Sequencing Related Information is dynamically stored in modules.
-
-# Or we can use a factory 
-
-module IlluminaTruSeq
-
-
-end
-
-# Expirement Class encodes the expirement with helper funcitons.
-class Expirement
-
-	def initialize (exp_described)
-		
-
-		@conditions 
-	end
- 
-	# Expirements have many conditions
-	class Condition
-		def initialize (args)
-
-		end
-		
-		# Conditions have many replicates
-		class Replicate
-			def initialize (args)
-
-			end
-
-			# TODO Returns the filepaths of the initial read files as an array
-			def raw_read_files
-
-			end
-
-			# TODO Returns the filepaths of the cleaned read files as an array
-			def cleaned_read_files
-
-			end
-
-			# TODO Return a hash with the adapter sequences.
-			def adapter_sequence
-
-			end
-		end
-	end
-end
-=end
