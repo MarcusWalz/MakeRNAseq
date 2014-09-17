@@ -5,7 +5,7 @@
 # For loading yaml parameter files
 require 'yaml'
 
-# Remotely Execute a command using slurm.
+# Remotely Execute a command using slurm scheduler.
 def rSh(name, command, slurm_hash)
 	salloc_commands = "" 
 
@@ -16,8 +16,6 @@ def rSh(name, command, slurm_hash)
 	myCommand = "salloc -J #{name} #{salloc_commands} \
 srun #{command}"
 
-	# Echo Command
-	puts myCommand
 	# Run Command
 	sh   myCommand
 end
@@ -32,29 +30,61 @@ end
 class Genome 
 	include Rake::DSL
 
-	attr_reader :name, :yml_file, :pre, :dir, :fa, :gtf, :idx_dir, :idx_log, :bowtie_pre, :yml
+	attr_reader :name, :yml
 	def initialize(name)
 		# Checks to make sure genome exists
 		#
 		@name       = name 
-		@yml_file   = "genomes/#{@name}.yml"             #Genome Yml
 
 		unless File.exist? ( "genomes/#{name}.yml" )
 			raise "Genome Does not exist"
 		end 
 
-		@pre        = "genomes/#{@name}" 
-		@dir        = "#{@pre}/"                #Genome Directory
-		@fa         = "#{@pre}/genome.fa"       #Genome fasta location
-		@gtf        = "#{@pre}/transcripts.gtf" #Transcript gtf location
-		@idx_dir    = "#{@pre}/genome_idx/"     #Bowtie2 Index for Genome
-		@idx_log    = "#{@pre}/genome_idx/log"  #Bowtie2 Index Log
-		@bowtie_pre = "#{@pre}/genome_idx/p"    #Bowtie2 Genome Pre
-		@yml        = YAML.load_file( @yml_file)
+		@yml = YAML.load_file( yml_file )
 
 		@master_task= "genome_#{name}"
 
 		rules
+	end
+
+	# Genome Prefix
+	def pre
+		"genomes/#{@name}" 
+	end
+
+	# Genome YML File
+	def yml_file
+		"genomes/#{@name}.yml"
+	end
+
+	# Genome Directory (redundent?)
+	def dir
+		"#{pre}/"
+	end
+
+	# Genome Fasta File (uncompressed)
+	def fa_file
+		"#{pre}/genome.fa"       #Genome fasta location
+	end
+
+	# Transcript GTF File (uncomressed)
+	def gtf_file
+		"#{pre}/transcripts.gtf"
+	end
+
+	# Bowtie Index Directory
+	def idx_dir
+		"#{pre}/genome_idx/"    #Bowtie2 Index for Genome
+	end
+
+	# Bowtie Index Log File
+	def idx_log_file
+		"#{pre}/genome_idx/log"  #Bowtie2 Index Log
+	end
+	
+	# Bowtie Prefix
+	def bowtie_pre
+		"#{pre}/genome_idx/p"    #Bowtie2 Genome Pre
 	end
 
 	def rules
@@ -62,47 +92,45 @@ class Genome
 		directory dir
 
 		desc "Download Genome #{@name} Fasta"
-		file fa => [yml_file, dir]  do |t|
+		file fa_file => [yml_file, dir]  do |t|
 			genome_fasta_url = yml["genome_fasta"]
 
 			unzip = File.extname(genome_fasta_url) == ".gz" ? "| gunzip -c" : "" 
 
-			sh "wget -O - #{genome_fasta_url} #{unzip} > #{t.name}"
+			sh "wget -O - #{genome_fasta_url} #{unzip} > #{fa_file}"
 		end
 
 		desc "Download Genome #{@name} GTF"
-		file gtf => [yml_file, dir] do |t|
+		file gtf_file => [yml_file, dir] do |t|
 
 			genome_gtf_url = yml["transcript_gtf"]
 
 			#splice additional command to zip if it's zipped 
 			unzip = File.extname(genome_gtf_url) == ".gz" ? "| gunzip -c" : "" 
-			sh "wget -O - #{genome_gtf_url} #{unzip} > #{t.name}"
+			sh "wget -O - #{genome_gtf_url} #{unzip} > #{gtf_file}"
 		end
 
 		desc "Create Genome Idx Dir"
 		directory idx_dir
 
 		desc "Index the genome using Bowtie 2"
-		file idx_log => [fa, idx_dir] do |t| 
+		file idx_log_file => [fa_file, idx_dir] do |t| 
 
-			rSh "bowtie2-build", "bowtie2-build #{fa} #{idx_dir}p > #{idx_log}", :mem=>"8000m"
+			rSh "bowtie2-build", "bowtie2-build #{fa_file} #{idx_dir}p > #{idx_log}", :mem=>"8000m"
 
 		end
 
-		task "genome_#{name}" => [idx_log, gtf]
+		task "genome_#{name}" => [idx_log_file, gtf_file]
 	end
 end
 
 Genome.new("ZV9")
 
-
+=begin
 # Download samples from FTP server
 class FTPDownloader	< HardLink
 
 	include Rake::DSL
-	require 'net/ftp'
-	require 'uri'
 	
 
 	def initialize (root_dir, hs)
@@ -135,38 +163,58 @@ class HardLink
 
 	def get_file_rule (filename, output_file)
 		File::link("#{root_dir}/#{filename}", output_file}
-
 	end
 
 end
 
+=end
+
 class Expirement
+
 	include Rake::DSL
-	attr_reader :sample_dir, :dir, :name
+	attr_reader :name, :yml
 
 	def initialize(expirement_name)
 
 		@name = expirement_name
-		@dir = "expirements/#{@name}"
-		@yml_file = "#{@dir}/exp_described.yml"
-		@sample_dir = "#{@dir}/samples"
-		@samplesheet = "#{@dir}/samplesheet"
-		@yml = YAML.load_file @yml_file
+		@yml = YAML.load_file yml_file
 
-		directory @sample_dir
+		directory sample_dir
 
 		@conditions = @yml['conditions'].map do |c|
 			Condition.new(self, c)
 		end
 
-		sample_sheet_rule
+		samplesheet_rule
+
+	end
+	
+	# directory where samples live
+	def sample_dir
+		"#{@dir}/samples"
+	end
+
+	# expirement directory
+	def dir
+		"expirements/#{@name}"
 
 	end
 
-	def sample_sheet_rule
+	# expirement yml file
+	def yml_file
+		"#{dir}/exp_described.yml"
+	end
+
+	# filepath to cufflinks sampleheet
+	def samplesheet_file
+		"#{dir}/samplesheet"
+
+	end
+
+	def samplesheet_rule
 		desc "Generate Expirement Sample Sheet"
-		file @samplesheet => @yml_file do 
-			File.open(@samplesheet, 'w') { |file| 
+		file samplesheet_file => yml_file do 
+			File.open(samplesheet_file, 'w') { |file| 
 				samples.each do |s|
 					file.write "#{s.alignment_file}\t#{s.condition.name}\n"
 				end
@@ -183,12 +231,13 @@ end
 class Condition
 	include Rake::DSL
 	attr_reader :dir, :replicates, :name
+
 	def initialize(expirement,condition_yml)
 		@expirement = expirement
 		@name = condition_yml['name']
 
 		# Create Rule for condtion_dir
-		directory @dir
+		directory dir
 
 		@replicates = condition_yml['replicates'].map do |r|
 			Sample.new(@expirement,self,r)
@@ -220,21 +269,22 @@ class Sample
 		@r2_samples = desc_hash['r2'] if desc_hash.key? 'r2'
 
 		# Create Rule for sample dir
-		directory @dir
+		directory dir
 	end
 
 	def dir
-		"#{@condition.dir}/#{@id}"
+		"#{condition.dir}/#{@id}"
 	end
 
 	def alignment_file
-		"#{@dir}/accepted_hits.bam"
+		"#{dir}/accepted_hits.bam"
 	end
 
 	def paired?
 		@r2_samples.nil?
 	end
 
+	# TODO
 	def download_rule
 			
 
