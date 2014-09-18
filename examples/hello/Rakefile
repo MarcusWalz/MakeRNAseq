@@ -1,0 +1,52 @@
+
+class Greeting
+ 	include Rake::DSL # Needed to use rake within instance methods
+	def initialize ( name ) 
+		@name = name 
+
+		make_rule
+	end 
+
+	def greeting
+		"Hello"
+	end
+
+	def make_rule
+		task name do 
+			puts "#{name} says #{greeting}"
+		end
+	end 
+
+
+	def name 
+		@name
+	end
+end
+
+Greeting.new("Bob")
+Greeting.new("John")
+
+
+# These greeting are too generic. Let's spice things up a bit:
+
+class SillyGreeting < Greeting 
+
+	def greeting
+		"HIIIIIIIYYAAAAAAAAA"
+	end
+
+end
+
+SillyGreeting.new("Tom")
+
+=begin
+$ rake Bob John Tom
+
+outputs
+
+Bob says Hello
+John says Hello
+Tom says HIIIIIIIYYAAAAAAAAA
+=end
+
+# It's basically magic.
