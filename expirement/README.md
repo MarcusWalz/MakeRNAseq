@@ -43,9 +43,6 @@ supply to Cufflinks given a particular sequencing technology.
 		sh "cat foo"
 	end
 	```
-Rules get executed within the same scope that they were defined in. This means with
-a little trickery rules can be defined via methods and class methods. Below is a
-simple `rakefile` that creates a generic task that echos back it's name as a string:
 
 ~~~~
 
@@ -104,3 +101,15 @@ Bob says Hello
 John says Hello
 Tom says HIIIIIIIYYAAAAAAAAA
 ~~~
+
+Whoa!!! What just happened? We were able to generate rules using object-oriented programming.
+All we need was `include Rake::DSL` below the class definition. This all works because Rules
+get executed in the same scope they were defined in.  Everything is suprisingly intuitive.
+
+The advantage of this approach is that it allows rules to be written on a "single sample" basis
+instead of an "every sample" basis. Meaning there is no longer a need to worry about wildcards
+and pattern matching. While the above example may seem a bit verbose, when working in complicated 
+real-world scenarios it tends to simplify things greatly.
+
+This approach is stable and is even employed by the Ruby on Rails framework. In addition we can 
+even import Makefiles into a Rakefile dynamically.
