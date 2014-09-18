@@ -1,7 +1,8 @@
 sequencing_type: "IlluminaTruSeq" # Type of Sequencing Used
 read_length: "2x101"              # Read Length
 reference_genome: "ZV9"           # Reference Genome
-sample_directory: "/brain_data "  # Directory where samples live
+download_method: "Hardlink"
+source_directory: "/brain_data "  # Directory or url where samples live
 
 conditions:
   - name: control

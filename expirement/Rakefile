@@ -32,10 +32,9 @@ class Genome
 
 	attr_reader :name, :yml
 	def initialize(name)
-		# Checks to make sure genome exists
-		#
 		@name       = name 
 
+		# Checks to make sure genome exists
 		unless File.exist? ( "genomes/#{name}.yml" )
 			raise "Genome Does not exist"
 		end 
