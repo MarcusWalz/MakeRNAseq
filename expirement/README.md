@@ -28,18 +28,18 @@ supply to Cufflinks given a particular sequencing technology.
 `rake` is really just an extension to Ruby. There are three core rules:
 
 * `file` a rule with  an associated output file
-	~~~~
+	```
 	file "foo" => [] do |t|
 		sh "#{t.name}"
 	end
-	~~~~
+	```
 * `directory` a rule that ensures a particular directory exists
-	~~~~
+	```
 	directory "my_dir" 
-	~~~~
+	```
 * `task` a rule without any associated output files
-	~~~
+	```
 	task :symbol => ["foo"] do |t|
 		sh "cat foo"
 	end
-	~~~~
+	```
