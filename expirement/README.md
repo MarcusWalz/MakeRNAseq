@@ -43,3 +43,64 @@ supply to Cufflinks given a particular sequencing technology.
 		sh "cat foo"
 	end
 	```
+Rules get executed within the same scope that they were defined in. This means with
+a little trickery rules can be defined via methods and class methods. Below is a
+simple `rakefile` that creates a generic task that echos back it's name as a string:
+
+~~~~
+
+class Greeting
+ 	include Rake::DSL # Needed to use rake within instance methods
+	def initialize ( name ) 
+		@name = name 
+
+		make_rule
+	end 
+
+	def greeting
+		"Hello"
+	end
+
+	def make_rule
+		task name do 
+			puts "#{name} says #{greeting}"
+		end
+	end 
+
+
+	def name 
+		@name
+	end
+end
+
+Greeting.new("Bob")
+Greeting.new("John")
+
+
+# These greeting are too generic for Tom. Let's spice things up a bit:
+
+class SillyGreeting < Greeting 
+
+	def greeting
+		"HIIIIIIIYYAAAAAAAAA"
+	end
+
+end
+
+SillyGreeting.new("Tom")
+~~~ 
+
+
+The command: 
+
+~~~
+$ rake Bob John Tom
+~~~
+
+Outputs:
+
+~~~
+Bob says Hello
+John says Hello
+Tom says HIIIIIIIYYAAAAAAAAA
+~~~
