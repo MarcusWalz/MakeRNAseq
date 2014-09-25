@@ -25,10 +25,39 @@ task :test do |t|
 	rSh "index", "aeou", :mem=>"100m", :foo=>"bar"
 end
 
+
+# RakeClass Includes the Rake DSL and calls all methods matching /.*_rule$/
+# after initialization.
+class RakeyClass
+	include Rake::DSL
+
+	def initialize
+		puts "I'm new"
+	end
+
+	class << self
+		def new *args
+			obj = super
+			obj.methods.grep(/.*_rule$/).each do |rule|
+				obj.send rule
+			end
+
+			obj
+
+		end
+
+	end
+
+
+end
+
+RakeyClass.new
+
 #Genome class
 
-class Genome 
-	include Rake::DSL
+class Genome < RakeyClass
+
+	@@genomes = {}
 
 	attr_reader :name, :yml
 	def initialize(name)
@@ -43,7 +72,11 @@ class Genome
 
 		@master_task= "genome_#{name}"
 
-		rules
+	end
+
+	def to_s
+		"Genome #{@name}"
+
 	end
 
 	# Genome Prefix
@@ -86,7 +119,8 @@ class Genome
 		"#{pre}/genome_idx/p"    #Bowtie2 Genome Pre
 	end
 
-	def rules
+	def test_rule
+		puts "Genome Rules Are Called"
 		desc "Create genome directory"
 		directory dir
 
@@ -121,9 +155,22 @@ class Genome
 
 		task "genome_#{name}" => [idx_log_file, gtf_file]
 	end
+
+	# Prevent Multiple Genomes From Opening
+	def self.lookup ( name )
+		if @@genomes.has_key?(name) 
+			return @@genomes[name]
+		else
+			@@genomes[name] = Genome.new( name )
+			@@genomes[name]
+		end
+	end
+
 end
 
-Genome.new("ZV9")
+puts "~~~~~~~~~~~~~~~~~"
+
+Genome.lookup("ZV9")
 
 =begin
 # Download samples from FTP server
@@ -168,9 +215,8 @@ end
 
 =end
 
-class Expirement
+class Expirement < RakeyClass
 
-	include Rake::DSL
 	attr_reader :name, :yml
 
 	def initialize(expirement_name)
@@ -184,10 +230,12 @@ class Expirement
 			Condition.new(self, c)
 		end
 
-		samplesheet_rule
-
 	end
-	
+
+	def genome 
+		Genome.lookup( @yml['reference_genome'] )
+	end
+
 	# directory where samples live
 	def sample_dir
 		"#{@dir}/samples"
@@ -211,6 +259,9 @@ class Expirement
 	end
 
 	def samplesheet_rule
+		#TODO remove
+		puts "WORKING"
+
 		desc "Generate Expirement Sample Sheet"
 		file samplesheet_file => yml_file do 
 			File.open(samplesheet_file, 'w') { |file| 
@@ -227,8 +278,7 @@ class Expirement
 
 end
 
-class Condition
-	include Rake::DSL
+class Condition < RakeyClass
 	attr_reader :dir, :replicates, :name
 
 	def initialize(expirement,condition_yml)
@@ -256,8 +306,7 @@ class Condition
 
 end
 
-class Sample
-	include Rake::DSL
+class Sample < RakeyClass
 	attr_reader :id, :condition
 
 	def initialize(expirement, condition, desc_hash)
@@ -300,4 +349,4 @@ class Sample
 
 end
 
-Expirement.new("brain_mehg")
+puts Expirement.new("brain_mehg").genome
