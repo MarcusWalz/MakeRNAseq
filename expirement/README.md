@@ -44,6 +44,11 @@ supply to Cufflinks given a particular sequencing technology.
 	end
 	```
 
+In order to use Rake outside of top level scope you need to require the
+rake DSL module.
+
+Here is an example:
+
 ~~~~
 
 class Greeting
@@ -88,7 +93,7 @@ SillyGreeting.new("Tom")
 ~~~ 
 
 
-The command: 
+Then the command: 
 
 ~~~
 $ rake Bob John Tom
@@ -102,14 +107,23 @@ John says Hello
 Tom says HIIIIIIIYYAAAAAAAAA
 ~~~
 
-Whoa!!! What just happened? We were able to generate rules using object-oriented programming.
+Whoa!!! What just happened? Rake was able to generate rules on object instantiation.
 All we need was `include Rake::DSL` below the class definition. This all works because Rules
 get executed in the same scope they were defined in.  Everything is suprisingly intuitive.
 
 The advantage of this approach is that it allows rules to be written on a "single sample" basis
-instead of an "every sample" basis. Meaning there is no longer a need to worry about wildcards
-and pattern matching. While the above example may seem a bit verbose, when working in complicated 
-real-world scenarios it tends to simplify things greatly.
+instead of an "every sample" basis. So instead of worrying about wildcards and pattern matching 
+Rake can dynamically generate "contrete" rules. While the above example may seem a bit verbose,
+when working in complicated real-world scenarios it tends to simplify things greatly.
 
-This approach is stable and is even employed by the Ruby on Rails framework. In addition we can 
-even import Makefiles into a Rakefile dynamically.
+This approach is stable and is even used in the Ruby on Rails framework to unify Rake rules from
+many disjoint extensions. In addition Rakefiles can import simple Makefiles dynamically.
+
+Applying this approach to bioinformatic workflows means that:
+
+* Details about expirment design from the logic of the workflow can be decoupled.
+* Sequencing specific paramaters and adjustments to the workflow can be
+	handled concisely object-oriented inheritance.
+* Parallel execution of the workflow is both efficient and implicit.
+* Workflow execution halts affected computations the event of an error.
+* Workflow can be extened uses Ruby modules.
